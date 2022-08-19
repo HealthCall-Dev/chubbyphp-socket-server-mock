@@ -6,20 +6,13 @@ namespace Chubbyphp\SocketServerMock;
 
 final class Message implements MessageInterface
 {
-    /**
-     * @var string
-     */
-    private $input;
+    public const SIGNAL_SLEEP = 'signal_sleep';
+    public const SIGNAL_SHUTDOWN = 'signal_shutdown';
 
-    /**
-     * @var string
-     */
-    private $output;
-
-    public function __construct(string $input, string $output)
-    {
-        $this->input = $input;
-        $this->output = $output;
+    public function __construct(
+        private readonly string $input,
+        private readonly string $output,
+    ) {
     }
 
     /**

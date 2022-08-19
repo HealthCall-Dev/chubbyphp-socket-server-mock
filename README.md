@@ -13,7 +13,7 @@ A simple socket server mock.
 
 ## Requirements
 
-* php: ^7.2|^8.0
+* php: ^8.1
 * symfony/process: ^4.4.11|^5.0|^6.0
 
 ## Installation
