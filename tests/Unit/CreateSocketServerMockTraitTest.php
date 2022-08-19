@@ -37,6 +37,55 @@ final class CreateSocketServerMockTraitTest extends TestCase
         self::assertSame(0, $process->getExitCode());
     }
 
+    public function testWithExpectedSignalShutdown(): void
+    {
+        $process = $this->createSocketServerMock('0.0.0.0', 62000, [[['input' => 'input', 'output' => 'output']]]);
+
+        self::assertTrue($process->isRunning());
+
+        $errno = 0;
+        $errstr = '';
+
+        $stream = stream_socket_client('tcp://localhost:62000', $errno, $errstr, 30);
+
+        fwrite($stream, 'signal_shutdown');
+
+        self::assertSame('', fread($stream, 1));
+
+        fwrite($stream, 'input');
+
+        // No output as the server has stopped
+        self::assertSame('', fread($stream, strlen('output')));
+
+        $process->wait();
+
+        self::assertSame(0, $process->getExitCode());
+    }
+
+    public function testWithExpectedSignalSleep(): void
+    {
+        $process = $this->createSocketServerMock('0.0.0.0', 62000, [[['input' => 'input', 'output' => 'output']]]);
+
+        self::assertTrue($process->isRunning());
+
+        $errno = 0;
+        $errstr = '';
+
+        $stream = stream_socket_client('tcp://localhost:62000', $errno, $errstr, 30);
+        \stream_set_timeout($stream, 1);
+
+        fwrite($stream, 'signal_sleep');
+
+        fwrite($stream, 'input');
+        self::assertSame(false, fread($stream, strlen('output')));
+        $metaData = \stream_get_meta_data($stream);
+        self::assertTrue($metaData['timed_out']);
+
+        $process->wait();
+
+        self::assertSame(0, $process->getExitCode());
+    }
+
     public function testWithUnexpectedInput(): void
     {
         $process = $this->createSocketServerMock('0.0.0.0', 62000, [[['input' => 'input', 'output' => 'output']]]);

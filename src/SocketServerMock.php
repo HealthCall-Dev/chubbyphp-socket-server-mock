@@ -40,18 +40,28 @@ final class SocketServerMock
     {
         while (null !== $message = $messageLog->getNextMessage()) {
             $input = $this->getDecodedValue($message->getInput());
+            $availableInputs = [
+                $input,
+                Message::SIGNAL_SHUTDOWN,
+                Message::SIGNAL_SLEEP,
+            ];
 
             $givenInput = '';
             while (true) {
                 $givenInput .= $socketConnection->read(1);
 
-                if (0 !== strpos($input, $givenInput)) {
+                if (!$this->pattenMatchesAvailableInputs($availableInputs, $givenInput)) {
                     throw SocketServerMockException::createByInvalidInput($givenInput, $input);
                 }
 
                 if ($input === $givenInput) {
                     $socketConnection->write($this->getDecodedValue($message->getOutput()));
 
+                    continue 2;
+                } elseif (Message::SIGNAL_SHUTDOWN === $givenInput) {
+                    exit();
+                } elseif (Message::SIGNAL_SLEEP  === $givenInput) {
+                    sleep(2);
                     continue 2;
                 }
             }
@@ -65,5 +75,18 @@ final class SocketServerMock
         }
 
         return $value;
+    }
+
+    /**
+     * @param string[] $availableInputs
+     */
+    private function pattenMatchesAvailableInputs(array $availableInputs, string $givenInput): bool
+    {
+        foreach ($availableInputs as $item) {
+            if (\str_starts_with($item, $givenInput)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
