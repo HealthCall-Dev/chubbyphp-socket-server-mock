@@ -50,7 +50,7 @@ final class SocketServerMock
             while (true) {
                 $givenInput .= $socketConnection->read(1);
 
-                if (!$this->pattenMatchesAvailableInputs($availableInputs, $givenInput)) {
+                if (!$this->patternMatchesAvailableInputs($availableInputs, $givenInput)) {
                     throw SocketServerMockException::createByInvalidInput($givenInput, $input);
                 }
 
@@ -80,7 +80,7 @@ final class SocketServerMock
     /**
      * @param string[] $availableInputs
      */
-    private function pattenMatchesAvailableInputs(array $availableInputs, string $givenInput): bool
+    private function patternMatchesAvailableInputs(array $availableInputs, string $givenInput): bool
     {
         foreach ($availableInputs as $item) {
             if (\str_starts_with($item, $givenInput)) {
